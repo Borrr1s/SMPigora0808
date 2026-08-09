@@ -38,7 +38,7 @@
     /* Флаг РФ */
     .tricolor-bar {
       width: 100%;
-      max-width: 920px;
+      max-width: 980px;
       height: 6px;
       display: flex;
       border-radius: 4px 4px 0 0;
@@ -51,7 +51,7 @@
 
     .container {
       width: 100%;
-      max-width: 920px;
+      max-width: 980px;
       background: var(--card-bg);
       border-radius: 0 0 12px 12px;
       padding: 28px 24px;
@@ -105,7 +105,7 @@
 
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 16px;
     }
 
@@ -113,6 +113,10 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
+    }
+
+    .input-group.full-width {
+      grid-column: 1 / -1;
     }
 
     label {
@@ -260,6 +264,12 @@
       font-size: 15px;
     }
 
+    .comment-cell {
+      color: var(--text-muted);
+      font-style: italic;
+      font-size: 13px;
+    }
+
     .empty-state {
       text-align: center;
       padding: 35px;
@@ -304,11 +314,15 @@
           </div>
           <div class="input-group">
             <label for="phone">Номер телефона</label>
-            <input type="tel" id="phone" placeholder="+7 (999) 000-00-00" required>
+            <input type="tel" id="phone" placeholder="8 (999) 000-00-00" required>
           </div>
           <div class="input-group">
             <label for="lapTime">Время круга (ММ:СС.ммм)</label>
             <input type="text" id="lapTime" placeholder="1:23.456" required pattern="^(\d+:)?\d{1,2}[\.,]\d{1,3}$" title="Формат: 1:23.456 или 83.456">
+          </div>
+          <div class="input-group full-width">
+            <label for="comment">Комментарий (необязательно)</label>
+            <input type="text" id="comment" placeholder="Трасса, машина, штраф или примечание...">
           </div>
           <button type="submit" id="submitBtn">Отправить результат</button>
         </div>
@@ -332,11 +346,12 @@
               <th>Фамилия Имя</th>
               <th>Номер телефона</th>
               <th>Лучшее время круга</th>
+              <th>Комментарий</th>
             </tr>
           </thead>
           <tbody id="leaderboardBody">
             <tr>
-              <td colspan="4" class="empty-state">Загрузка данных из Google Таблицы...</td>
+              <td colspan="5" class="empty-state">Загрузка данных из Google Таблицы...</td>
             </tr>
           </tbody>
         </table>
@@ -349,7 +364,6 @@
   </div>
 
   <script>
-    // Привязанный URL веб-приложения Google Apps Script
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby2r-IQA9gDNhisw_E1PJ46EmnJ2ITpPthrX7gFkSgafcB4rb6nMwkcPGd_LaQ5rzxwog/exec";
 
     const lapForm = document.getElementById('lapForm');
@@ -357,10 +371,24 @@
     const leaderboardBody = document.getElementById('leaderboardBody');
     const statusText = document.getElementById('statusText');
 
+    // Функция приведения номера телефона к формату начиная с 8
+    function normalizePhone(phone) {
+      let trimmed = phone.trim();
+      // Если начинает с +7, меняем на 8
+      if (trimmed.startsWith('+7')) {
+        return '8' + trimmed.slice(2);
+      }
+      // Если ввели 7 в начале (без плюс), меняем на 8
+      if (trimmed.startsWith('7') && trimmed.replace(/\D/g, '').length === 11) {
+        return '8' + trimmed.slice(1);
+      }
+      return trimmed;
+    }
+
     // Получение результатов
     async function loadLeaderboard() {
       if (!SCRIPT_URL || SCRIPT_URL === "ВСТАВЬТЕ_СЮДА_URL_WEB_APP") {
-        leaderboardBody.innerHTML = `<tr><td colspan="4" class="empty-state">Укажите SCRIPT_URL в файле index.html</td></tr>`;
+        leaderboardBody.innerHTML = `<tr><td colspan="5" class="empty-state">Укажите SCRIPT_URL в файле index.html</td></tr>`;
         statusText.textContent = "Не настроен SCRIPT_URL";
         return;
       }
@@ -374,12 +402,13 @@
             <tr>
               <td class="pos-col">${item.pos}</td>
               <td>${escapeHtml(item.name)}</td>
-              <td>${escapeHtml(item.phone)}</td>
+              <td>${escapeHtml(normalizePhone(item.phone))}</td>
               <td class="time-cell">${escapeHtml(item.lapTime)}</td>
+              <td class="comment-cell">${escapeHtml(item.comment || '')}</td>
             </tr>
           `).join('');
         } else {
-          leaderboardBody.innerHTML = `<tr><td colspan="4" class="empty-state">Записей пока нет</td></tr>`;
+          leaderboardBody.innerHTML = `<tr><td colspan="5" class="empty-state">Записей пока нет</td></tr>`;
         }
         statusText.textContent = "Онлайн • Автообновление (10с)";
       } catch (err) {
@@ -387,16 +416,19 @@
       }
     }
 
-    // Отправка формы (совместимо с GitHub Pages & CORS)
+    // Отправка формы
     lapForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       submitBtn.disabled = true;
       submitBtn.textContent = "Сохранение...";
 
+      const rawPhone = document.getElementById('phone').value;
+
       const payload = {
         name: document.getElementById('name').value.trim(),
-        phone: document.getElementById('phone').value.trim(),
-        lapTime: document.getElementById('lapTime').value.trim().replace(',', '.')
+        phone: normalizePhone(rawPhone),
+        lapTime: document.getElementById('lapTime').value.trim().replace(',', '.'),
+        comment: document.getElementById('comment').value.trim()
       };
 
       try {
@@ -425,7 +457,6 @@
       return String(text || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    // Первичная загрузка и автообновление каждые 10 секунд
     loadLeaderboard();
     setInterval(loadLeaderboard, 10000);
   </script>

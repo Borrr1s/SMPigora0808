@@ -6,6 +6,9 @@
   <title>SMP eSports — Результаты</title>
   <style>
     :root{
+      --flag-white: #FFFFFF;
+      --flag-blue: #0039A6;
+      --flag-red: #D52B1E;
       --bg-dark: #0b0e14;
       --card-bg: #151a24;
       --card-inner: #1c2331;
@@ -38,6 +41,21 @@
       padding:20px;
     }
 
+    /* Флаг и верхняя шапка (копия из основного index.html) */
+    .tricolor-bar {
+      width: 100%;
+      max-width: 1000px;
+      height: 6px;
+      display: flex;
+      border-radius: 4px 4px 0 0;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .tricolor-bar div { flex: 1; }
+    .tricolor-white { background-color: var(--flag-white); }
+    .tricolor-blue { background-color: var(--flag-blue); }
+    .tricolor-red { background-color: var(--flag-red); }
+
     .wrap{
       width:100%;
       max-width:1000px;
@@ -46,6 +64,29 @@
       border:1px solid var(--border);
       padding:20px;
       box-shadow:0 12px 30px rgba(0,0,0,0.6);
+    }
+
+    /* main header style from index.html */
+    .main-header { text-align:center; margin-bottom:14px; }
+    .main-header h1 {
+      font-size:28px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:2px;
+      color:var(--flag-white);
+      margin:0 0 6px 0;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      justify-content:center;
+    }
+    .main-header p {
+      color:#3b82f6;
+      font-weight:700;
+      font-size:13px;
+      letter-spacing:1.5px;
+      text-transform:uppercase;
+      margin:0;
     }
 
     header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap}
@@ -125,7 +166,19 @@
   </style>
 </head>
 <body>
+  <div class="tricolor-bar">
+    <div class="tricolor-white"></div>
+    <div class="tricolor-blue"></div>
+    <div class="tricolor-red"></div>
+  </div>
+
   <div class="wrap" role="main">
+
+    <div class="main-header">
+      <h1>🏎️ SMP eSports</h1>
+      <p>РЕГИСТРАЦИЯ ЛУЧШЕГО ВРЕМЕНИ КРУГА</p>
+    </div>
+
     <header>
       <div class="title">
         <h1>Результаты</h1>
@@ -170,8 +223,8 @@
       const res=[]; let cur='', inQuotes=false;
       for(let i=0;i<line.length;i++){
         const ch=line[i];
-        if(ch==='"'){
-          if(inQuotes && line[i+1]==='"'){ cur+='"'; i++; }
+        if(ch===""){
+          if(inQuotes && line[i+1]===""){ cur+='"'; i++; }
           else inQuotes=!inQuotes;
           continue;
         }

@@ -1,338 +1,402 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SMP eSports — Таблица результатов</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SMP eSports — Результаты</title>
   <style>
-    :root {
-      --flag-white: #FFFFFF;
-      --flag-blue: #0039A6;
-      --flag-red: #D52B1E;
+    :root{
       --bg-dark: #0b0e14;
       --card-bg: #151a24;
       --card-inner: #1c2331;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
-      --border-color: #2e384d;
-      --accent-green: #10b981;
+      --accent: #10b981;
+      --accent-blue: #0039A6;
+      --border: #2e384d;
+      --row-gap: 8px;
+      --row-padding: 10px 14px;
+      --row-radius: 8px;
+      --row-border: 1px solid var(--border);
+      --font-main: "Segoe UI", Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+      --visible-rows: 15; /* 5 fixed + 10 rotating */
+      --fixed-size: 5;
+      --visible-rotating: 10;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif; }
-    body { background-color: var(--bg-dark); color: var(--text-main); padding: 20px 12px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+    *{box-sizing: border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      min-height:100%;
+      background:var(--bg-dark);
+      color:var(--text-main);
+      font-family:var(--font-main);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
 
-    .tricolor-bar { width: 100%; max-width: 920px; height: 6px; display: flex; border-radius: 4px 4px 0 0; overflow: hidden; }
-    .tricolor-bar div { flex: 1; }
-    .tricolor-white { background-color: var(--flag-white); }
-    .tricolor-blue { background-color: var(--flag-blue); }
-    .tricolor-red { background-color: var(--flag-red); }
+    .wrap{
+      width:100%;
+      max-width:1000px;
+      background:var(--card-bg);
+      border-radius:12px;
+      border:1px solid var(--border);
+      padding:20px;
+      box-shadow:0 12px 30px rgba(0,0,0,0.6);
+    }
 
-    .container { width: 100%; max-width: 920px; background: var(--card-bg); border-radius: 0 0 12px 12px; padding: 28px 24px; box-shadow: 0 12px 30px rgba(0,0,0,0.6); border: 1px solid var(--border-color); border-top: none; }
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap}
+    header .title{display:flex;flex-direction:column}
+    header h1{margin:0;font-size:22px;letter-spacing:1px;font-weight:800}
+    header p{margin:0;color:#3b82f6;font-weight:700;font-size:12px;text-transform:uppercase}
 
-    header { text-align: center; margin-bottom: 18px; }
-    header h1 { font-size: 28px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: var(--flag-white); margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 10px; }
-    header p { color: #3b82f6; font-weight: 700; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; }
+    .status { font-size:13px; color:var(--text-muted); display:flex;gap:10px; align-items:center; }
+    .status-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);display:inline-block;border:1px solid rgba(255,255,255,0.06)}
 
-    .leaderboard-card { background: var(--card-inner); padding: 18px; border-radius: 10px; border-left: 5px solid var(--flag-red); }
-    .leaderboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
-    .leaderboard-header h2 { font-size: 20px; font-weight: 700; }
-    .status-badge { font-size: 12px; color: var(--text-muted); background: #111622; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px; }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green); display: inline-block; }
+    /* Layout: fixed block + rotating block */
+    .board{
+      background:var(--card-inner);
+      border-radius:8px;
+      padding:12px;
+      border-left:5px solid var(--accent-blue);
+    }
 
-    .table-wrapper { overflow: hidden; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-inner); }
-    table { width: 100%; border-collapse: collapse; text-align: left; }
-    thead th { background-color: #0e1320; color: var(--text-muted); font-size: 12px; text-transform: uppercase; padding: 12px 14px; border-bottom: 1px solid var(--border-color); letter-spacing: 0.5px; }
-    tbody tr td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); font-size: 14px; color: var(--text-main); }
-    tbody tr:last-child td { border-bottom: none; }
-    tr:hover td { background-color: rgba(255,255,255,0.02); }
+    .columns{
+      display:grid;
+      grid-template-columns: 80px 1fr 160px;
+      gap:10px;
+      align-items:center;
+      padding:8px 12px;
+      color:var(--text-muted);
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:0.6px;
+    }
 
-    .pos-col { font-weight: bold; width: 60px; text-align: center; }
-    tbody tr.top-1 .pos-col { color: #ffd700; }
-    tbody tr.top-2 .pos-col { color: #e2e8f0; }
-    tbody tr.top-3 .pos-col { color: #cd7f32; }
+    /* Containers for rows */
+    .rows-area{ margin-top:8px; display:flex; flex-direction:column; gap:var(--row-gap); }
 
-    .time-cell { font-family: 'Consolas', 'Courier New', monospace; font-weight: 700; color: var(--accent-green); font-size: 15px; }
-    .empty-state { text-align: center; padding: 26px; color: var(--text-muted); }
+    .rows-fixed, .rows-rotating{
+      display:grid;
+      gap:var(--row-gap);
+    }
 
-    footer { margin-top: 18px; text-align: center; font-size: 12px; color: var(--text-muted); }
+    /* Row card */
+    .row{
+      display:grid;
+      grid-template-columns: 80px 1fr 160px;
+      align-items:center;
+      gap:10px;
+      padding:var(--row-padding);
+      background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02));
+      border-radius:var(--row-radius);
+      border:var(--row-border);
+      transition: transform 450ms cubic-bezier(.2,.9,.3,1), opacity 450ms ease;
+      font-size:16px; /* увеличенный шрифт */
+    }
 
-    @media (max-width: 600px) { .container { padding: 16px 12px; } header h1 { font-size: 20px; } td, th { padding: 8px 8px; font-size: 13px; } }
+    .row .pos{ font-weight:800; text-align:center; font-size:18px; width:80px; color:var(--text-main) }
+    .row .name{ color:var(--text-main); font-weight:700 }
+    .row .time{ text-align:right; font-family: 'Consolas', 'Courier New', monospace; color:var(--accent); font-weight:800; font-size:17px }
+
+    /* special colors for top3 */
+    .row.top-1 .pos{ color: #ffd700 }
+    .row.top-2 .pos{ color: #e2e8f0 }
+    .row.top-3 .pos{ color: #cd7f32 }
+
+    /* Area sizing to fit exactly 15 rows without internal scroll */
+    .rows-fixed { grid-auto-rows: 56px; } /* 5 rows * 56 = 280px */
+    .rows-rotating { grid-auto-rows: 56px; } /* 10 rows * 56 = 560px */
+
+    /* Animation classes used during swap */
+    .fade-out { opacity:0; transform: translateY(-8px); }
+    .fade-in { opacity:1; transform: translateY(0); }
+
+    /* Placeholder style */
+    .empty { color:var(--text-muted); font-weight:600; opacity:0.85 }
+
+    /* Responsive: reduce row height on small screens so layout fits */
+    @media (max-width:720px){
+      .columns{grid-template-columns:64px 1fr 120px}
+      .row{grid-template-columns:64px 1fr 120px; font-size:14px}
+      .row .pos{font-size:16px}
+      .row .time{font-size:15px}
+      .rows-fixed, .rows-rotating { grid-auto-rows:48px }
+    }
   </style>
 </head>
 <body>
-  <div class="tricolor-bar">
-    <div class="tricolor-white"></div>
-    <div class="tricolor-blue"></div>
-    <div class="tricolor-red"></div>
-  </div>
-
-  <div class="container">
+  <div class="wrap" role="main">
     <header>
-      <h1>🏎️ SMP eSports</h1>
-      <p>Таблица результатов — только просмотр</p>
+      <div class="title">
+        <h1>🏆 Результаты</h1>
+        <p>Только отображение</p>
+      </div>
+      <div class="status"><span class="status-dot" id="statusDot"></span><span id="statusText">Загрузка...</span></div>
     </header>
 
-    <div class="leaderboard-card">
-      <div class="leaderboard-header">
-        <h2>Результаты</h2>
-        <div class="status-badge"><span class="status-dot" id="statusDot"></span><span id="statusText">Загрузка...</span></div>
+    <div class="board" aria-live="polite">
+      <div class="columns">
+        <div>№</div><div>Фамилия Имя</div><div style="text-align:right">Лучшее время круга</div>
       </div>
 
-      <div class="table-wrapper">
-        <table aria-describedby="desc">
-          <thead>
-            <tr>
-              <th class="pos-col">№</th>
-              <th>Фамилия Имя</th>
-              <th>Лучшее время круга</th>
-            </tr>
-          </thead>
-          <tbody id="fixedBody"></tbody>
-          <tbody id="rotatingBody"></tbody>
-        </table>
+      <div class="rows-area">
+        <div class="rows-fixed" id="fixedRows" aria-hidden="false"></div>
+        <div class="rows-rotating" id="rotatingRows" aria-hidden="false"></div>
       </div>
-
-      
     </div>
 
-    <footer>SMP eSports Timing Display • Обновление таблицы: каждые 10 с; прокрутка: каждые 6 с</footer>
+    <footer style="margin-top:12px;color:var(--text-muted);font-size:13px">Обновление данных: каждые 10 с • Прокрутка: каждые 10 с (шаг 10)</footer>
   </div>
 
   <script>
-    // Публичный CSV-экспорт Google Sheet (gid=0)
+    // CSV-экспорт листа (gid=0)
     const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/1Q2DDOwHC-v1ewo1d70qjFdmsEXY-e7p0xJ1NyrJyFzw/export?format=csv&gid=0';
 
-    const fixedBody = document.getElementById('fixedBody');
-    const rotatingBody = document.getElementById('rotatingBody');
+    const FIXED_SIZE = 5;
+    const VISIBLE_ROTATING = 10;
+    const ROTATE_STEP = 10; // сдвиг на 10 строк
+    const UPDATE_INTERVAL = 10000; // 10s
+    const ROTATE_INTERVAL = 10000; // 10s
+
+    const fixedEl = document.getElementById('fixedRows');
+    const rotatingEl = document.getElementById('rotatingRows');
     const statusText = document.getElementById('statusText');
     const statusDot = document.getElementById('statusDot');
 
-    let allRows = []; // массив объектов {pos, name, timeRaw, timeMs}
-    let rotateIndex = 0; // индекс для вращающегося окна
-    const ROTATING_SIZE = 25;
-    const FIXED_SIZE = 5;
-    const PAGE_SIZE = FIXED_SIZE + ROTATING_SIZE; // 30
+    let allRows = []; // {position, name, timeRaw, timeMs}
+    let rotateIndex = 0;
 
-    // Парсинг CSV (очень упрощённый, работает для простых CSV без вложенных кавычек-комм)
-    function parseCSV(text) {
-      const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
-      if (lines.length === 0) return [];
-      const headers = lines[0].split(',').map(h => h.trim().replace(/^\"|\"$/g, '').toLowerCase());
-      const rows = [];
-      for (let i = 1; i < lines.length; i++) {
-        const cols = splitCsvLine(lines[i]);
-        if (cols.length === 0) continue;
-        const obj = {};
-        for (let j = 0; j < headers.length; j++) {
-          obj[headers[j]] = (cols[j] || '').trim().replace(/^\"|\"$/g, '');
+    // CSV парсер (поддержка кавычек)
+    function splitCsvLine(line){
+      const res=[]; let cur='', inQuotes=false;
+      for(let i=0;i<line.length;i++){
+        const ch=line[i];
+        if(ch==='\"'){
+          if(inQuotes && line[i+1]==='\"'){ cur+='\"'; i++; }
+          else inQuotes=!inQuotes;
+          continue;
+        }
+        if(ch===',' && !inQuotes){ res.push(cur); cur=''; continue; }
+        cur+=ch;
+      }
+      res.push(cur);
+      return res;
+    }
+    function parseCSV(text){
+      const lines=text.split(/\r?\n/).filter(Boolean);
+      if(lines.length===0) return [];
+      const headers = splitCsvLine(lines[0]).map(h=>h.trim().replace(/^"|"$/g,'').toLowerCase());
+      const rows=[];
+      for(let i=1;i<lines.length;i++){
+        const cols=splitCsvLine(lines[i]);
+        if(cols.length===0) continue;
+        const obj={};
+        for(let j=0;j<headers.length;j++){
+          obj[headers[j]] = (cols[j]||'').trim().replace(/^"|"$/g,'');
         }
         rows.push(obj);
       }
       return rows;
     }
 
-    // Правильный разбор строки CSV с поддержкой кавычек
-    function splitCsvLine(line) {
-      const result = [];
-      let cur = '';
-      let inQuotes = false;
-      for (let i = 0; i < line.length; i++) {
-        const ch = line[i];
-        if (ch === '\"') {
-          if (inQuotes && line[i+1] === '\"') { cur += '\"'; i++; } else { inQuotes = !inQuotes; }
-          continue;
-        }
-        if (ch === ',' && !inQuotes) { result.push(cur); cur = ''; continue; }
-        cur += ch;
+    function parseTimeToMs(s){
+      if(!s) return null;
+      s=String(s).trim().replace(',', '.');
+      const mmss = s.match(/^(\d+):(\d{1,2})[.,]?(\d{1,3})?$/);
+      if(mmss){
+        const m=Number(mmss[1]), sec=Number(mmss[2]), ms=mmss[3]?Number((mmss[3]+'000').slice(0,3)):0;
+        return (m*60+sec)*1000 + ms;
       }
-      result.push(cur);
-      return result;
-    }
-
-    // Попробуем найти колонки для имени и времени по ожидаемым названиям
-    function mapRowToData(rowObj, idx) {
-      const keys = Object.keys(rowObj);
-      // Поиск поля с временем
-      let timeKey = keys.find(k => /time|lap|время|круг|best|besttime/.test(k));
-      let nameKey = keys.find(k => /name|fullname|фамилия|имя|фамилия имя|фамилияимя/.test(k));
-      let posKey = keys.find(k => /pos|position|№|rank|место/.test(k));
-
-      // Попытки альтернативных сопоставлений по содержимому
-      if (!nameKey) {
-        // ищем колонку, в которой есть буквы и пробелы (и мало цифр)
-        nameKey = keys.find(k => /[а-яa-z]/i.test(rowObj[k]) && !/\d/.test(rowObj[k]));
-      }
-      if (!timeKey) {
-        timeKey = keys.find(k => /\d+[\:\.,]\d+/.test(rowObj[k] || ''));
-      }
-
-      const name = nameKey ? rowObj[nameKey] : (rowObj[keys[0]] || '—');
-      const timeRaw = timeKey ? rowObj[timeKey] : '';
-      const pos = posKey ? (rowObj[posKey] || '').replace(/[^\d]/g,'') : '';
-
-      const timeMs = parseTimeToMs(timeRaw);
-
-      return { pos: pos ? Number(pos) : null, name: name || '—', timeRaw: timeRaw || '', timeMs };
-    }
-
-    // Преобразовать время вида "1:23.456" или "83.456" в миллисекунды. Возвращает null если не разобрали.
-    function parseTimeToMs(s) {
-      if (!s) return null;
-      s = String(s).trim();
-      // Заменим запятую на точку
-      s = s.replace(',', '.');
-      // Форматы: M:SS.mmm или MM:SS.mmm или SSS.mmm
-      const mmss = s.match(/^(\d+):(\d{1,2})[\.,]?(\d{1,3})?$/);
-      if (mmss) {
-        const min = Number(mmss[1]);
-        const sec = Number(mmss[2]);
-        const ms = mmss[3] ? Number((mmss[3] + '000').slice(0,3)) : 0;
-        return (min*60 + sec)*1000 + ms;
-      }
-      const secOnly = s.match(/^(\d+)[\.,]?(\d{1,3})?$/);
-      if (secOnly) {
-        const sec = Number(secOnly[1]);
-        const ms = secOnly[2] ? Number((secOnly[2] + '000').slice(0,3)) : 0;
+      const secOnly = s.match(/^(\d+)[.,]?(\d{1,3})?$/);
+      if(secOnly){
+        const sec=Number(secOnly[1]), ms=secOnly[2]?Number((secOnly[2]+'000').slice(0,3)):0;
         return sec*1000 + ms;
       }
       return null;
     }
-
-    function formatMsToString(ms) {
-      if (ms == null) return '—';
-      const minutes = Math.floor(ms / 60000);
-      const seconds = Math.floor((ms % 60000) / 1000);
-      const millis = ms % 1000;
-      if (minutes > 0) {
-        return `${minutes}:${String(seconds).padStart(2,'0')}.${String(millis).padStart(3,'0')}`;
-      }
+    function formatMs(ms){
+      if(ms==null) return '—';
+      const minutes = Math.floor(ms/60000);
+      const seconds = Math.floor((ms%60000)/1000);
+      const millis = ms%1000;
+      if(minutes>0) return `${minutes}:${String(seconds).padStart(2,'0')}.${String(millis).padStart(3,'0')}`;
       return `${seconds}.${String(millis).padStart(3,'0')}`;
     }
 
-    // Загрузить CSV, распарсить, нормализовать и отсортировать
-    async function fetchAndProcess() {
-      try {
-        const res = await fetch(SHEET_CSV, { cache: 'no-store' });
-        if (!res.ok) throw new Error('network');
+
+    function mapRow(r, idx){
+      const keys = Object.keys(r);
+      let nameKey = keys.find(k => /name|fullname|фамилия|имя|фio|fio|фамилия имя/.test(k));
+      let timeKey = keys.find(k => /time|lap|время|круг|best|besttime/.test(k));
+      let posKey = keys.find(k => /pos|position|№|rank|место/.test(k));
+
+      if(!nameKey){
+        nameKey = keys.find(k => /[а-яa-z]/i.test(r[k]) && !/\d/.test(r[k]));
+      }
+      if(!timeKey){
+        timeKey = keys.find(k => /\d+[:.,]\d+/.test(r[k]||''));
+      }
+
+      const name = nameKey ? r[nameKey] : (r[keys[0]]||'—');
+      const timeRaw = timeKey ? r[timeKey] : '';
+      const pos = posKey ? (r[posKey]||'').replace(/[^\d]/g,'') : '';
+      const timeMs = parseTimeToMs(timeRaw);
+
+      return { pos: pos?Number(pos):null, name: name||'—', timeRaw: timeRaw||'', timeMs };
+    }
+
+    async function fetchAndPrepare(){
+      try{
+        const res = await fetch(SHEET_CSV, {cache:'no-store'});
+        if(!res.ok) throw new Error('network');
         const text = await res.text();
         const parsed = parseCSV(text);
-        const mapped = parsed.map((r, i) => mapRowToData(r, i)).filter(r => r.name && (r.timeRaw || r.timeMs != null));
+        const mapped = parsed.map(mapRow).filter(r => r.name && (r.timeRaw || r.timeMs!=null));
 
-        // Если есть позиции в таблице (столбец pos) — используем их для первичной сортировки, иначе сортируем по времени
-        const hasPos = mapped.some(r => r.pos !== null && !isNaN(r.pos));
-        if (hasPos) {
-          // Сортируем по pos если указано, а затем по времени
-          mapped.sort((a,b) => {
-            if (a.pos !== null && b.pos !== null) return a.pos - b.pos;
-            if (a.timeMs != null && b.timeMs != null) return a.timeMs - b.timeMs;
+        const hasPos = mapped.some(r=>r.pos!==null && !isNaN(r.pos));
+        if(hasPos){
+          mapped.sort((a,b)=>{
+            if(a.pos!==null && b.pos!==null) return a.pos - b.pos;
+            if(a.timeMs!=null && b.timeMs!=null) return a.timeMs - b.timeMs;
             return 0;
           });
         } else {
-          // Сортируем по времени, отсутствующие время кладём в конец
-          mapped.sort((a,b) => {
-            if (a.timeMs == null && b.timeMs == null) return 0;
-            if (a.timeMs == null) return 1;
-            if (b.timeMs == null) return -1;
+          mapped.sort((a,b)=>{
+            if(a.timeMs==null && b.timeMs==null) return 0;
+            if(a.timeMs==null) return 1;
+            if(b.timeMs==null) return -1;
             return a.timeMs - b.timeMs;
           });
         }
-
-        // Проставим позиции по порядку (1..)
-        allRows = mapped.map((r, i) => ({ ...r, position: i+1 }));
-        statusText.textContent = `Онлайн • ${allRows.length} записей • обновление 10с`;
-        statusDot.style.background = 'var(--accent-green)';
-      } catch (err) {
-        console.error(err);
+        allRows = mapped.map((r,i)=>({ ...r, position: i+1 }));
+        statusText.textContent = `Онлайн • ${allRows.length} записей • обновление каждые 10 с`;
+        statusDot.style.background = 'var(--accent)';
+      }catch(e){
+        console.error(e);
         statusText.textContent = 'Ошибка загрузки данных';
         statusDot.style.background = '#ff5a5f';
         allRows = [];
       }
     }
 
-    function render() {
-      // Очищаем
-      fixedBody.innerHTML = '';
-      rotatingBody.innerHTML = '';
+    // render helpers
+    function createRowElement(objOrNull){
+      const tr = document.createElement('div');
+      tr.className = 'row';
+      if(!objOrNull){
+        tr.innerHTML = `<div class="pos empty">—</div><div class="name empty">—</div><div class="time empty">—</div>`;
+      } else {
+        const classes = ['row'];
+        if(objOrNull.position === 1) classes.push('top-1');
+        if(objOrNull.position === 2) classes.push('top-2');
+        if(objOrNull.position === 3) classes.push('top-3');
+        tr.className = classes.join(' ');
+        const timeText = objOrNull.timeMs!=null ? formatMs(objOrNull.timeMs) : (objOrNull.timeRaw || '—');
+        tr.innerHTML = `<div class="pos">${objOrNull.position}</div><div class="name">${escapeHtml(objOrNull.name)}</div><div class="time">${escapeHtml(timeText)}</div>`;
+      }
+      return tr;
+    }
 
-      if (!allRows || allRows.length === 0) {
-        rotatingBody.innerHTML = `<tr><td colspan="3" class="empty-state">Нет данных в таблице</td></tr>`;
+    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // initial render: fixed top 5 + first rotating window of VISIBLE_ROTATING
+    function renderInitial(){
+      fixedEl.innerHTML = '';
+      rotatingEl.innerHTML = '';
+
+      if(allRows.length===0){
+        // fill placeholders
+        for(let i=0;i<FIXED_SIZE;i++) fixedEl.appendChild(createRowElement(null));
+        for(let i=0;i<VISIBLE_ROTATING;i++) rotatingEl.appendChild(createRowElement(null));
         return;
       }
 
-      // Первые 5 — фиксированные
       const fixed = allRows.slice(0, FIXED_SIZE);
-      fixed.forEach(r => {
-        const tr = document.createElement('tr');
-        if (r.position === 1) tr.classList.add('top-1');
-        if (r.position === 2) tr.classList.add('top-2');
-        if (r.position === 3) tr.classList.add('top-3');
-        tr.innerHTML = `<td class="pos-col">${r.position}</td><td>${escapeHtml(r.name)}</td><td class="time-cell">${r.timeMs!=null?escapeHtml(formatMsToString(r.timeMs)):escapeHtml(r.timeRaw)}</td>`;
-        fixedBody.appendChild(tr);
-      });
+      for(let i=0;i<FIXED_SIZE;i++){
+        const r = fixed[i];
+        fixedEl.appendChild(createRowElement(r || null));
+      }
 
-      // Остальные — вращающийся список. Если записей меньше либо равно 30 — покажем просто до 30
-      if (allRows.length <= PAGE_SIZE) {
-        const rest = allRows.slice(FIXED_SIZE, PAGE_SIZE);
-        if (rest.length === 0) {
-          // если нет остальных — заполним пустотой до ROTATING_SIZE
-          for (let i=0;i<ROTATING_SIZE;i++) {
-            const tr = document.createElement('tr'); tr.innerHTML = `<td class="pos-col">${FIXED_SIZE+i+1}</td><td>—</td><td class="time-cell">—</td>`; rotatingBody.appendChild(tr);
-          }
-        } else {
-          rest.forEach(r => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td class="pos-col">${r.position}</td><td>${escapeHtml(r.name)}</td><td class="time-cell">${r.timeMs!=null?escapeHtml(formatMsToString(r.timeMs)):escapeHtml(r.timeRaw)}</td>`;
-            rotatingBody.appendChild(tr);
-          });
-          // дополним пустыми строками если меньше чем ROTATING_SIZE
-          for (let i=rest.length;i<ROTATING_SIZE;i++) {
-            const tr = document.createElement('tr'); tr.innerHTML = `<td class="pos-col">${FIXED_SIZE+i+1}</td><td>—</td><td class="time-cell">—</td>`; rotatingBody.appendChild(tr);
-          }
+      // rotating window start at rotateIndex
+      renderRotatingWindow(rotateIndex, true);
+    }
+
+    // Render rotating window starting at startIndex (index in restAll)
+    function renderRotatingWindow(startIndex, noAnim){
+      rotatingEl.classList.remove('fade-in','fade-out');
+      // animation: fade out -> replace -> fade in
+      const restAll = allRows.slice(FIXED_SIZE);
+      const rows = [];
+      if(restAll.length === 0){
+        for(let i=0;i<VISIBLE_ROTATING;i++) rows.push(null);
+      } else {
+        // startIndex is modulo restAll.length
+        const s = ((startIndex % restAll.length) + restAll.length) % restAll.length;
+        for(let i=0;i<VISIBLE_ROTATING;i++){
+          const idx = (s + i) % restAll.length;
+          rows.push(restAll[idx] || null);
         }
+      }
+
+      if(noAnim){
+        rotatingEl.innerHTML = '';
+        rows.forEach(r => rotatingEl.appendChild(createRowElement(r)));
         return;
       }
 
-      // Если записей больше PAGE_SIZE, покажем окно из ROTATING_SIZE, начинающееся с rotateIndex в массиве allRows.slice(FIXED_SIZE)
-      const restAll = allRows.slice(FIXED_SIZE); // массив, по которому вращаем
-      // Убедимся что rotateIndex в корректных рамках
-      rotateIndex = rotateIndex % restAll.length;
-      for (let i = 0; i < ROTATING_SIZE; i++) {
-        const idx = (rotateIndex + i) % restAll.length;
-        const r = restAll[idx];
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td class="pos-col">${r.position}</td><td>${escapeHtml(r.name)}</td><td class="time-cell">${r.timeMs!=null?escapeHtml(formatMsToString(r.timeMs)):escapeHtml(r.timeRaw)}</td>`;
-        rotatingBody.appendChild(tr);
-      }
+      rotatingEl.classList.add('fade-out');
+      // after fade-out duration, replace content and fade in
+      setTimeout(()=> {
+        rotatingEl.innerHTML = '';
+        rows.forEach(r => rotatingEl.appendChild(createRowElement(r)));
+        rotatingEl.classList.remove('fade-out');
+        rotatingEl.classList.add('fade-in');
+        // remove fade-in after animation
+        setTimeout(()=> rotatingEl.classList.remove('fade-in'), 600);
+      }, 420); // matches transition ~450ms in CSS
     }
 
-    function escapeHtml(text) {
-      return String(text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    // rotation step: add ROTATE_STEP each tick
+    function startRotation(){
+      setInterval(()=> {
+        const restCount = Math.max(1, Math.max(0, allRows.length - FIXED_SIZE));
+        if(restCount === 0) return;
+        rotateIndex = (rotateIndex + ROTATE_STEP) % restCount;
+        renderRotatingWindow(rotateIndex, false);
+      }, ROTATE_INTERVAL);
     }
 
-    // Интервалы: обновление данных каждые 10s; прокрутка каждые 6s
-    async function start() {
-      await fetchAndProcess();
+    // periodic data refresh
+    function startUpdater(){
+      setInterval(async ()=> {
+        const prevCount = allRows.length;
+        await fetchAndPrepare();
+        // If first load or length changed, keep rotateIndex but clamp
+        const restCount = Math.max(1, Math.max(0, allRows.length - FIXED_SIZE));
+        rotateIndex = rotateIndex % restCount;
+        // re-render fixed (they are fixed to top 5)
+        fixedEl.innerHTML = '';
+        const fixed = allRows.slice(0, FIXED_SIZE);
+        for(let i=0;i<FIXED_SIZE;i++){
+          const r = fixed[i];
+          fixedEl.appendChild(createRowElement(r || null));
+        }
+        renderRotatingWindow(rotateIndex, false);
+      }, UPDATE_INTERVAL);
+    }
+
+    (async function init(){
+      await fetchAndPrepare();
       rotateIndex = 0;
-      render();
+      renderInitial();
+      startRotation();
+      startUpdater();
+    })();
 
-      // Обновление таблицы каждые 10s
-      setInterval(async () => {
-        await fetchAndProcess();
-        // при обновлении данных — не сбрасываем rotateIndex, но если данных меньше — корректируем
-        rotateIndex = rotateIndex % Math.max(1, Math.max(0, allRows.length - FIXED_SIZE));
-        render();
-      }, 10000);
-
-      // Прокрутка каждые 6s (меняем окно на +1)
-      setInterval(() => {
-        if (!allRows || allRows.length <= PAGE_SIZE) return; // если нет доп. строк — не крутить
-        rotateIndex = (rotateIndex + 1) % Math.max(1, allRows.length - FIXED_SIZE);
-        render();
-      }, 6000);
-    }
-
-    // Запуск
-    start();
   </script>
 </body>
 </html>

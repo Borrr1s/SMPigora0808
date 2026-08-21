@@ -41,7 +41,7 @@
       padding:20px;
     }
 
-    /* Флаг и верхняя шапка (копия из основного index.html) */
+    /* Флаг и верхняя шапка */
     .tricolor-bar {
       width: 100%;
       max-width: 1000px;
@@ -66,42 +66,26 @@
       box-shadow:0 12px 30px rgba(0,0,0,0.6);
     }
 
-    /* main header style from index.html */
-    .main-header { text-align:center; margin-bottom:14px; }
-    .main-header h1 {
-      font-size:28px;
-      font-weight:800;
-      text-transform:uppercase;
-      letter-spacing:2px;
-      color:var(--flag-white);
-      margin:0 0 6px 0;
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      justify-content:center;
-    }
-    .main-header p {
-      color:#3b82f6;
-      font-weight:700;
-      font-size:13px;
-      letter-spacing:1.5px;
-      text-transform:uppercase;
-      margin:0;
-    }
+    /* colorful header with logo */
+    .main-header{display:flex;align-items:center;gap:18px;justify-content:space-between;margin-bottom:8px}
+    .brand-left{display:flex;align-items:center;gap:14px}
+    .brand-left img{height:56px;width:auto;display:block}
+    .brand-title{display:flex;flex-direction:column}
+    .brand-title h1{margin:0;font-size:24px;letter-spacing:2px;font-weight:900;color:var(--text-main);}
+    .brand-title p{margin:0;color:#3b82f6;font-weight:700;font-size:13px;letter-spacing:1.5px;text-transform:uppercase}
 
-    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap}
-    header .title{display:flex;flex-direction:column}
-    header h1{margin:0;font-size:22px;letter-spacing:1px;font-weight:800}
+    /* status badge on right */
+    .status-compact{display:flex;align-items:center;gap:10px}
+    .status-dot{width:12px;height:12px;border-radius:50%;background:var(--accent);display:inline-block;border:2px solid rgba(255,255,255,0.06)}
+    .status-text{color:var(--text-muted);font-weight:700}
 
-    .status { font-size:13px; color:var(--text-muted); display:flex;gap:10px; align-items:center; }
-    .status-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);display:inline-block;border:1px solid rgba(255,255,255,0.06)}
-
-    /* Layout: fixed block + rotating block */
+    /* board styles */
     .board{
       background:var(--card-inner);
       border-radius:8px;
       padding:12px;
       border-left:5px solid var(--accent-blue);
+      margin-top:8px;
     }
 
     .columns{
@@ -128,11 +112,12 @@
       align-items:center;
       gap:10px;
       padding:var(--row-padding);
-      background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02));
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03));
       border-radius:var(--row-radius);
       border:var(--row-border);
-      transition: transform 700ms cubic-bezier(.16,1,.3,1), opacity 700ms ease;
+      transition: transform 650ms cubic-bezier(.2,.9,.3,1), opacity 600ms ease, box-shadow 600ms ease;
       font-size:16px; /* увеличенный шрифт */
+      will-change: transform, opacity, box-shadow;
     }
 
     .row .pos{ font-weight:800; text-align:center; font-size:18px; width:80px; color:var(--text-main) }
@@ -148,14 +133,26 @@
     .rows-fixed { grid-auto-rows: 56px; } /* 5 rows * 56 = 280px */
     .rows-rotating { grid-auto-rows: 56px; } /* 10 rows * 56 = 560px */
 
+    /* Blank slots (no framing) */
+    .blank-slot{height:56px;}
+    @media (max-width:720px){ .blank-slot{height:48px} }
+
     /* Animation classes used during swap */
-    .fade-out { opacity:0; transform: translateY(-14px); }
-    .fade-in { opacity:1; transform: translateY(0); }
+    .fade-out { opacity:0; transform: translateY(-8px) scale(.995); }
+    .fade-in { opacity:1; transform: translateY(0) scale(1); }
 
-    /* Placeholder style */
-    .empty { color:var(--text-muted); font-weight:600; opacity:0.85 }
+    /* highlight new rows */
+    @keyframes glowPop{
+      0%{ box-shadow: 0 0 0 rgba(16,185,129,0); transform: scale(0.995); }
+      40%{ box-shadow: 0 6px 24px rgba(16,185,129,0.08); transform: scale(1.01); }
+      100%{ box-shadow: 0 0 0 rgba(16,185,129,0); transform: scale(1); }
+    }
+    .new-row{ animation: glowPop 800ms ease; }
 
-    /* Responsive: reduce row height on small screens so layout fits */
+    /* Placeholder style (framed empty) */
+    .empty { color:var(--text-muted); font-weight:600; opacity:0.9 }
+
+    /* Responsive adjustments */
     @media (max-width:720px){
       .columns{grid-template-columns:64px 1fr 120px}
       .row{grid-template-columns:64px 1fr 120px; font-size:14px}
@@ -175,18 +172,18 @@
   <div class="wrap" role="main">
 
     <div class="main-header">
-      <h1>🏎️ SMP eSports</h1>
-      <p>РЕГИСТРАЦИЯ ЛУЧШЕГО ВРЕМЕНИ КРУГА</p>
+      <div class="brand-left">
+        <!-- Place leaderboard/logo.png in the repo (leaderboard/logo.png) or change src to your hosted URL -->
+        <img src="/leaderboard/logo.png" alt="SMP eSports logo" onerror="this.style.display='none'" />
+        <div class="brand-title">
+          <h1>🏎️ SMP eSports</h1>
+          <p>РЕГИСТРАЦИЯ ЛУЧШЕГО ВРЕМЕНИ КРУГА</p>
+        </div>
+      </div>
+      <div class="status-compact"><span class="status-dot" id="statusDot"></span><span class="status-text" id="statusText">Загрузка...</span></div>
     </div>
 
-    <header>
-      <div class="title">
-        <h1>Результаты</h1>
-      </div>
-      <div class="status"><span class="status-dot" id="statusDot"></span><span id="statusText">Загрузка...</span></div>
-    </header>
-
-    <div class="board" aria-live="polite">
+    <div class="board" aria-live="polite" aria-atomic="true">
       <div class="columns">
         <div>№</div><div>Фамилия Имя</div><div style="text-align:right">Лучшее время круга</div>
       </div>
@@ -216,15 +213,15 @@
     const statusDot = document.getElementById('statusDot');
 
     let allRows = []; // {position, name, timeRaw, timeMs}
-    let rotateIndex = 0;
+    let rotatePage = 0; // page index (each page shifts by ROTATE_STEP)
 
     // CSV парсер (поддержка кавычек)
     function splitCsvLine(line){
       const res=[]; let cur='', inQuotes=false;
       for(let i=0;i<line.length;i++){
         const ch=line[i];
-        if(ch===""){
-          if(inQuotes && line[i+1]===""){ cur+='"'; i++; }
+        if(ch==='"'){
+          if(inQuotes && line[i+1]==='"'){ cur+='"'; i++; }
           else inQuotes=!inQuotes;
           continue;
         }
@@ -275,19 +272,14 @@
       return `${seconds}.${String(millis).padStart(3,'0')}`;
     }
 
-
     function mapRow(r, idx){
       const keys = Object.keys(r);
       let nameKey = keys.find(k => /name|fullname|фамилия|имя|фio|fio|фамилия имя/.test(k));
       let timeKey = keys.find(k => /time|lap|время|круг|best|besttime/.test(k));
       let posKey = keys.find(k => /pos|position|№|rank|место/.test(k));
 
-      if(!nameKey){
-        nameKey = keys.find(k => /[а-яa-z]/i.test(r[k]) && !/\d/.test(r[k]));
-      }
-      if(!timeKey){
-        timeKey = keys.find(k => /\d+[:.,]\d+/.test(r[k]||''));
-      }
+      if(!nameKey){ nameKey = keys.find(k => /[а-яa-z]/i.test(r[k]) && !/\d/.test(r[k])); }
+      if(!timeKey){ timeKey = keys.find(k => /\d+[:.,]\d+/.test(r[k]||'')); }
 
       const name = nameKey ? r[nameKey] : (r[keys[0]]||'—');
       const timeRaw = timeKey ? r[timeKey] : '';
@@ -348,17 +340,22 @@
       }
       return tr;
     }
+    function createBlankSlot(){
+      const el = document.createElement('div');
+      el.className = 'blank-slot';
+      return el;
+    }
 
     function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-    // initial render: fixed top 5 + first rotating window of VISIBLE_ROTATING
+    // initial render: fixed top 5 + first rotating page
     function renderInitial(){
       fixedEl.innerHTML = '';
       rotatingEl.innerHTML = '';
 
       if(allRows.length===0){
         for(let i=0;i<FIXED_SIZE;i++) fixedEl.appendChild(createRowElement(null));
-        for(let i=0;i<VISIBLE_ROTATING;i++) rotatingEl.appendChild(createRowElement(null));
+        for(let i=0;i<VISIBLE_ROTATING;i++) rotatingEl.appendChild(createBlankSlot());
         return;
       }
 
@@ -368,70 +365,77 @@
         fixedEl.appendChild(createRowElement(r || null));
       }
 
-      renderRotatingWindow(rotateIndex, true);
+      renderRotatingPage(0, true);
     }
 
-    // Render rotating window starting at startIndex (index in restAll)
-    function renderRotatingWindow(startIndex, noAnim){
+    function renderRotatingPage(pageIndex, noAnim){
       rotatingEl.classList.remove('fade-in','fade-out');
       const restAll = allRows.slice(FIXED_SIZE);
-      const rows = [];
-      if(restAll.length === 0){
-        for(let i=0;i<VISIBLE_ROTATING;i++) rows.push(null);
-      } else {
-        const s = ((startIndex % restAll.length) + restAll.length) % restAll.length;
-        for(let i=0;i<VISIBLE_ROTATING;i++){
-          const idx = (s + i) % restAll.length;
-          rows.push(restAll[idx] || null);
-        }
-      }
+      const pages = Math.max(1, Math.ceil(restAll.length / ROTATE_STEP));
+      const start = pageIndex * ROTATE_STEP;
+      const slice = restAll.slice(start, start + VISIBLE_ROTATING);
+
+      // build rows (do NOT wrap-around). pad with blanks to VISIBLE_ROTATING
+      const rows = slice.slice(0, VISIBLE_ROTATING);
+      while(rows.length < VISIBLE_ROTATING) rows.push(null);
 
       if(noAnim){
         rotatingEl.innerHTML = '';
-        rows.forEach(r => rotatingEl.appendChild(createRowElement(r)));
+        rows.forEach(r => rotatingEl.appendChild(r?createRowElement(r):createBlankSlot()));
         return;
       }
 
       rotatingEl.classList.add('fade-out');
       setTimeout(()=>{
         rotatingEl.innerHTML = '';
-        rows.forEach(r => rotatingEl.appendChild(createRowElement(r)));
+        rows.forEach(r => {
+          const el = r?createRowElement(r):createBlankSlot();
+          rotatingEl.appendChild(el);
+          if(r) {
+            // slight staggered highlight for newly shown rows
+            setTimeout(()=> el.classList.add('new-row'), 80);
+            setTimeout(()=> el.classList.remove('new-row'), 900);
+          }
+        });
         rotatingEl.classList.remove('fade-out');
         rotatingEl.classList.add('fade-in');
         setTimeout(()=> rotatingEl.classList.remove('fade-in'), 820);
-      }, 760); // синхронизировано с CSS transition 700ms
+      }, 380); // shorter delay for smoother feel
     }
 
-    // rotation step: add ROTATE_STEP each tick
+    // rotation step: advance pageIndex each tick
     function startRotation(){
       setInterval(()=>{
-        const restCount = Math.max(1, Math.max(0, allRows.length - FIXED_SIZE));
-        if(restCount === 0) return;
-        rotateIndex = (rotateIndex + ROTATE_STEP) % restCount;
-        renderRotatingWindow(rotateIndex, false);
+        const restAll = allRows.slice(FIXED_SIZE);
+        const pages = Math.max(1, Math.ceil(restAll.length / ROTATE_STEP));
+        if(pages === 0) return;
+        rotatePage = (rotatePage + 1) % pages;
+        renderRotatingPage(rotatePage, false);
       }, ROTATE_INTERVAL);
     }
 
     // periodic data refresh
     function startUpdater(){
       setInterval(async ()=>{
-        const prevCount = allRows.length;
         await fetchAndPrepare();
-        const restCount = Math.max(1, Math.max(0, allRows.length - FIXED_SIZE));
-        rotateIndex = rotateIndex % restCount;
+        // re-render fixed top
         fixedEl.innerHTML = '';
         const fixed = allRows.slice(0, FIXED_SIZE);
         for(let i=0;i<FIXED_SIZE;i++){
           const r = fixed[i];
           fixedEl.appendChild(createRowElement(r || null));
         }
-        renderRotatingWindow(rotateIndex, false);
+        // clamp rotatePage
+        const restAll = allRows.slice(FIXED_SIZE);
+        const pages = Math.max(1, Math.ceil(restAll.length / ROTATE_STEP));
+        rotatePage = rotatePage % pages;
+        renderRotatingPage(rotatePage, false);
       }, UPDATE_INTERVAL);
     }
 
     (async function init(){
       await fetchAndPrepare();
-      rotateIndex = 0;
+      rotatePage = 0;
       renderInitial();
       startRotation();
       startUpdater();

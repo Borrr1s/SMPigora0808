@@ -26,7 +26,7 @@
       --fixed-size: 5;
       --visible-rotating: 10;
       --site-max-width: 980px;
-      --anim-duration: 820ms;
+      --anim-duration: 1000ms;
       --anim-ease: cubic-bezier(.16,.9,.28,1);
     }
 
@@ -79,7 +79,7 @@
     .rows-fixed, .rows-rotating{ display:grid; gap:var(--row-gap); }
 
     /* Row card */
-    .row{ display:grid; grid-template-columns: 80px 1fr 160px; align-items:center; gap:10px; padding:var(--row-padding); background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03)); border-radius:var(--row-radius); border:var(--row-border); transition: transform 680ms var(--anim-ease), opacity 560ms ease, box-shadow 560ms ease; font-size:16px; will-change: transform, opacity, box-shadow; }
+    .row{ display:grid; grid-template-columns: 80px 1fr 160px; align-items:center; gap:10px; padding:var(--row-padding); background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03)); border-radius:var(--row-radius); border:var(--row-border); transition: transform 1000ms var(--anim-ease), opacity 800ms ease, box-shadow 700ms ease; font-size:16px; will-change: transform, opacity, box-shadow; }
 
     .row .pos{ font-weight:800; text-align:center; font-size:18px; width:80px; color:var(--text-main) }
     .row .name{ color:var(--text-main); font-weight:700 }
@@ -95,11 +95,11 @@
     .blank-slot{height:56px;}
     @media (max-width:720px){ .blank-slot{height:48px} }
 
-    .fade-out { opacity:0; transform: translateY(-4px) scale(.998); }
+    .fade-out { opacity:0; transform: translateY(-3px) scale(0.999); }
     .fade-in { opacity:1; transform: translateY(0) scale(1); }
 
-    @keyframes glowPop{ 0%{ box-shadow: 0 0 0 rgba(16,185,129,0); transform: scale(0.997); } 40%{ box-shadow: 0 6px 20px rgba(16,185,129,0.06); transform: scale(1.007); } 100%{ box-shadow: 0 0 0 rgba(16,185,129,0); transform: scale(1); } }
-    .new-row{ animation: glowPop 700ms ease; }
+    @keyframes glowPop{ 0%{ box-shadow: 0 0 0 rgba(16,185,129,0); transform: scale(0.998); } 40%{ box-shadow: 0 6px 18px rgba(16,185,129,0.05); transform: scale(1.003); } 100%{ box-shadow: 0 0 0 rgba(16,185,129,0); transform: scale(1); } }
+    .new-row{ animation: glowPop 600ms ease; }
 
     .empty { color:var(--text-muted); font-weight:600; opacity:0.9 }
 
@@ -284,7 +284,6 @@
       }
     }
 
-    // element pools (allow blank slots)
     const fixedEls = [];
     const rotatingEls = [];
 
@@ -297,16 +296,11 @@
     function makeBlankEl(){ const el = document.createElement('div'); el.className = 'blank-slot'; return el; }
 
     function ensurePools(){
-      // fixed
       while(fixedEls.length < FIXED_SIZE){ const el = makeRowEl(); fixedEls.push(el); fixedEl.appendChild(el); }
-      // rotating
       while(rotatingEls.length < VISIBLE_ROTATING){ const el = makeRowEl(); rotatingEls.push(el); rotatingEl.appendChild(el); }
     }
 
-    function replaceEl(parent, oldEl, newEl, indexArray, idx){
-      parent.replaceChild(newEl, oldEl);
-      indexArray[idx] = newEl;
-    }
+    function replaceEl(parent, oldEl, newEl, indexArray, idx){ parent.replaceChild(newEl, oldEl); indexArray[idx] = newEl; }
 
     function updateRowElement(el, data){
       if(!data){
@@ -348,23 +342,19 @@
       rows.forEach((r, i)=>{
         const current = rotatingEls[i];
         if(r === null){
-          // need blank slot
           if(!current.classList.contains('blank-slot')){
             const blank = makeBlankEl();
             replaceEl(rotatingEl, current, blank, rotatingEls, i);
           }
-          // blank slot — nothing more to update
           return;
         }
-        // ensure it's a row element
         if(current.classList.contains('blank-slot')){
           const rowEl = makeRowEl();
           replaceEl(rotatingEl, current, rowEl, rotatingEls, i);
           updateRowElement(rowEl, r);
-          if(!noAnim){ rowEl.classList.add('fade-in'); setTimeout(()=>rowEl.classList.remove('fade-in'), 820); rowEl.classList.add('new-row'); setTimeout(()=>rowEl.classList.remove('new-row'), 900); }
+          if(!noAnim){ rowEl.classList.add('fade-in'); setTimeout(()=>rowEl.classList.remove('fade-in'), 900); rowEl.classList.add('new-row'); setTimeout(()=>rowEl.classList.remove('new-row'), 700); }
           return;
         }
-        // normal row -> animate update in place
         const el = rotatingEls[i];
         if(noAnim){ updateRowElement(el, r); return; }
         el.classList.add('fade-out');
@@ -372,26 +362,26 @@
           updateRowElement(el, r);
           el.classList.remove('fade-out');
           el.classList.add('fade-in');
-          setTimeout(()=>el.classList.remove('fade-in'), 820);
-          el.classList.add('new-row'); setTimeout(()=>el.classList.remove('new-row'), 900);
-        }, 360);
+          setTimeout(()=>el.classList.remove('fade-in'), 900);
+          el.classList.add('new-row'); setTimeout(()=>el.classList.remove('new-row'), 700);
+        }, 420);
       });
     }
 
     function startRotationLoop(){
-      if(rotationTimer) clearTimeout(rotationTimer);
-      rotationTimer = setTimeout(function tick(){
+      if(rotationTimer) clearInterval(rotationTimer);
+      rotationTimer = setInterval(()=>{
         const restAll = allRows.slice(FIXED_SIZE);
         const pages = Math.max(1, Math.ceil(restAll.length / ROTATE_STEP));
-        if(pages > 0){ rotatePage = (rotatePage + 1) % pages; renderRotatingPage(rotatePage, false); }
-        rotationTimer = setTimeout(tick, ROTATE_INTERVAL);
+        rotatePage = (rotatePage + 1) % pages;
+        renderRotatingPage(rotatePage, false);
       }, ROTATE_INTERVAL);
     }
 
     async function refreshData(){
       if(updating) return;
       updating = true;
-      if(rotationTimer){ clearTimeout(rotationTimer); rotationTimer = null; }
+      // do not clear interval here — keep rotation running
       const ok = await fetchAndPrepare();
       ensurePools();
       const fixed = allRows.slice(0, FIXED_SIZE);
@@ -400,7 +390,7 @@
       const pages = Math.max(1, Math.ceil(restAll.length / ROTATE_STEP));
       rotatePage = rotatePage % pages;
       renderRotatingPage(rotatePage, false);
-      setTimeout(()=>{ startRotationLoop(); updating = false; }, 600);
+      updating = false;
     }
 
     function startUpdater(){ setInterval(()=>{ refreshData(); }, UPDATE_INTERVAL); }

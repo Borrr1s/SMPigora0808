@@ -25,6 +25,7 @@
       --visible-rows: 15; /* 5 fixed + 10 rotating */
       --fixed-size: 5;
       --visible-rotating: 10;
+      --site-max-width: 980px;
     }
 
     *{box-sizing: border-box}
@@ -35,16 +36,25 @@
       background:var(--bg-dark);
       color:var(--text-main);
       font-family:var(--font-main);
-      display:flex;
-      align-items:center;
-      justify-content:center;
       padding:20px;
+      /* Use normal flow and center content with margin auto to avoid flex centering issues */
+    }
+
+    /* Center the main content and keep a consistent max width */
+    .site-container{ max-width: var(--site-max-width); margin: 0 auto; }
+
+    .wrap{
+      width:100%;
+      background:var(--card-bg);
+      border-radius:12px;
+      border:1px solid var(--border);
+      padding:20px;
+      box-shadow:0 12px 30px rgba(0,0,0,0.6);
     }
 
     /* Флаг и верхняя шапка */
     .tricolor-bar {
       width: 100%;
-      max-width: 1000px;
       height: 6px;
       display: flex;
       border-radius: 4px 4px 0 0;
@@ -55,16 +65,6 @@
     .tricolor-white { background-color: var(--flag-white); }
     .tricolor-blue { background-color: var(--flag-blue); }
     .tricolor-red { background-color: var(--flag-red); }
-
-    .wrap{
-      width:100%;
-      max-width:1000px;
-      background:var(--card-bg);
-      border-radius:12px;
-      border:1px solid var(--border);
-      padding:20px;
-      box-shadow:0 12px 30px rgba(0,0,0,0.6);
-    }
 
     /* colorful header with logo */
     .main-header{display:flex;align-items:center;gap:18px;justify-content:space-between;margin-bottom:8px}
@@ -159,42 +159,45 @@
       .row .pos{font-size:16px}
       .row .time{font-size:15px}
       .rows-fixed, .rows-rotating { grid-auto-rows:48px }
+      .brand-left img{height:44px}
     }
   </style>
 </head>
 <body>
-  <div class="tricolor-bar">
-    <div class="tricolor-white"></div>
-    <div class="tricolor-blue"></div>
-    <div class="tricolor-red"></div>
-  </div>
+  <div class="site-container">
+    <div class="wrap" role="main">
 
-  <div class="wrap" role="main">
+      <div class="tricolor-bar">
+        <div class="tricolor-white"></div>
+        <div class="tricolor-blue"></div>
+        <div class="tricolor-red"></div>
+      </div>
 
-    <div class="main-header">
-      <div class="brand-left">
-        <!-- Place leaderboard/logo.png in the repo (leaderboard/logo.png) or change src to your hosted URL -->
-        <img src="/leaderboard/logo.png" alt="SMP eSports logo" onerror="this.style.display='none'" />
-        <div class="brand-title">
-          <h1>🏎️ SMP eSports</h1>
-          <p>РЕГИСТРАЦИЯ ЛУЧШЕГО ВРЕМЕНИ КРУГА</p>
+      <div class="main-header">
+        <div class="brand-left">
+          <!-- Place leaderboard/logo.png in the repo (leaderboard/logo.png) or change src to your hosted URL -->
+          <img src="/leaderboard/logo.png" alt="SMP eSports logo" onerror="this.style.display='none'" />
+          <div class="brand-title">
+            <h1>🏎️ SMP eSports</h1>
+            <p>РЕГИСТРАЦИЯ ЛУЧШЕГО ВРЕМЕНИ КРУГА</p>
+          </div>
+        </div>
+        <div class="status-compact"><span class="status-dot" id="statusDot"></span><span class="status-text" id="statusText">Загрузка...</span></div>
+      </div>
+
+      <div class="board" aria-live="polite" aria-atomic="true">
+        <div class="columns">
+          <div>№</div><div>Фамилия Имя</div><div style="text-align:right">Лучшее время круга</div>
+        </div>
+
+        <div class="rows-area">
+          <div class="rows-fixed" id="fixedRows" aria-hidden="false"></div>
+          <div class="rows-rotating" id="rotatingRows" aria-hidden="false"></div>
         </div>
       </div>
-      <div class="status-compact"><span class="status-dot" id="statusDot"></span><span class="status-text" id="statusText">Загрузка...</span></div>
+
+      <footer style="margin-top:12px;color:var(--text-muted);font-size:13px">Обновление данных: каждые 10 с • Прокрутка: каждые 10 с (шаг 10)</footer>
     </div>
-
-    <div class="board" aria-live="polite" aria-atomic="true">
-      <div class="columns">
-        <div>№</div><div>Фамилия Имя</div><div style="text-align:right">Лучшее время круга</div>
-      </div>
-
-      <div class="rows-area">
-        <div class="rows-fixed" id="fixedRows" aria-hidden="false"></div>
-        <div class="rows-rotating" id="rotatingRows" aria-hidden="false"></div>
-      </div>
-    </div>
-
-    <footer style="margin-top:12px;color:var(--text-muted);font-size:13px">Обновление данных: каждые 10 с • Прокрутка: каждые 10 с (шаг 10)</footer>
   </div>
 
   <script>

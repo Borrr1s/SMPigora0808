@@ -37,10 +37,8 @@
       color:var(--text-main);
       font-family:var(--font-main);
       padding:20px;
-      /* Use normal flow and center content with margin auto to avoid flex centering issues */
     }
 
-    /* Center the main content and keep a consistent max width */
     .site-container{ max-width: var(--site-max-width); margin: 0 auto; }
 
     .wrap{
@@ -50,23 +48,15 @@
       border:1px solid var(--border);
       padding:20px;
       box-shadow:0 12px 30px rgba(0,0,0,0.6);
+      overflow: hidden;
     }
 
-    /* Флаг и верхняя шапка */
-    .tricolor-bar {
-      width: 100%;
-      height: 6px;
-      display: flex;
-      border-radius: 4px 4px 0 0;
-      overflow: hidden;
-      margin-bottom: 12px;
-    }
+    .tricolor-bar { width: 100%; height: 6px; display: flex; border-radius: 4px 4px 0 0; overflow: hidden; margin-bottom: 12px; }
     .tricolor-bar div { flex: 1; }
     .tricolor-white { background-color: var(--flag-white); }
     .tricolor-blue { background-color: var(--flag-blue); }
     .tricolor-red { background-color: var(--flag-red); }
 
-    /* colorful header with logo */
     .main-header{display:flex;align-items:center;gap:18px;justify-content:space-between;margin-bottom:8px}
     .brand-left{display:flex;align-items:center;gap:14px}
     .brand-left img{height:56px;width:auto;display:block}
@@ -74,93 +64,43 @@
     .brand-title h1{margin:0;font-size:24px;letter-spacing:2px;font-weight:900;color:var(--text-main);}
     .brand-title p{margin:0;color:#3b82f6;font-weight:700;font-size:13px;letter-spacing:1.5px;text-transform:uppercase}
 
-    /* status badge on right */
     .status-compact{display:flex;align-items:center;gap:10px}
     .status-dot{width:12px;height:12px;border-radius:50%;background:var(--accent);display:inline-block;border:2px solid rgba(255,255,255,0.06)}
     .status-text{color:var(--text-muted);font-weight:700}
 
-    /* board styles */
-    .board{
-      background:var(--card-inner);
-      border-radius:8px;
-      padding:12px;
-      border-left:5px solid var(--accent-blue);
-      margin-top:8px;
-    }
+    .board{ background:var(--card-inner); border-radius:8px; padding:12px; border-left:5px solid var(--accent-blue); margin-top:8px; }
 
-    .columns{
-      display:grid;
-      grid-template-columns: 80px 1fr 160px;
-      gap:10px;
-      align-items:center;
-      padding:8px 12px;
-      color:var(--text-muted);
-      font-size:12px;
-      text-transform:uppercase;
-      letter-spacing:0.6px;
-    }
+    .columns{ display:grid; grid-template-columns: 80px 1fr 160px; gap:10px; align-items:center; padding:8px 12px; color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:0.6px; }
 
-    /* Containers for rows */
     .rows-area{ margin-top:8px; display:flex; flex-direction:column; gap:var(--row-gap); }
-
     .rows-fixed, .rows-rotating{ display:grid; gap:var(--row-gap); }
 
     /* Row card */
-    .row{
-      display:grid;
-      grid-template-columns: 80px 1fr 160px;
-      align-items:center;
-      gap:10px;
-      padding:var(--row-padding);
-      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03));
-      border-radius:var(--row-radius);
-      border:var(--row-border);
-      transition: transform 650ms cubic-bezier(.2,.9,.3,1), opacity 600ms ease, box-shadow 600ms ease;
-      font-size:16px; /* увеличенный шрифт */
-      will-change: transform, opacity, box-shadow;
-    }
+    .row{ display:grid; grid-template-columns: 80px 1fr 160px; align-items:center; gap:10px; padding:var(--row-padding); background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03)); border-radius:var(--row-radius); border:var(--row-border); transition: transform 720ms cubic-bezier(.16,.9,.28,1), opacity 650ms ease, box-shadow 650ms ease; font-size:16px; will-change: transform, opacity, box-shadow; }
 
     .row .pos{ font-weight:800; text-align:center; font-size:18px; width:80px; color:var(--text-main) }
     .row .name{ color:var(--text-main); font-weight:700 }
     .row .time{ text-align:right; font-family: 'Consolas', 'Courier New', monospace; color:var(--accent); font-weight:800; font-size:17px }
 
-    /* special colors for top3 */
     .row.top-1 .pos{ color: #ffd700 }
     .row.top-2 .pos{ color: #e2e8f0 }
     .row.top-3 .pos{ color: #cd7f32 }
 
-    /* Area sizing to fit exactly 15 rows without internal scroll */
-    .rows-fixed { grid-auto-rows: 56px; } /* 5 rows * 56 = 280px */
-    .rows-rotating { grid-auto-rows: 56px; } /* 10 rows * 56 = 560px */
+    .rows-fixed { grid-auto-rows: 56px; }
+    .rows-rotating { grid-auto-rows: 56px; }
 
-    /* Blank slots (no framing) */
     .blank-slot{height:56px;}
     @media (max-width:720px){ .blank-slot{height:48px} }
 
-    /* Animation classes used during swap */
-    .fade-out { opacity:0; transform: translateY(-8px) scale(.995); }
+    .fade-out { opacity:0; transform: translateY(-6px) scale(.995); }
     .fade-in { opacity:1; transform: translateY(0) scale(1); }
 
-    /* highlight new rows */
-    @keyframes glowPop{
-      0%{ box-shadow: 0 0 0 rgba(16,185,129,0); transform: scale(0.995); }
-      40%{ box-shadow: 0 6px 24px rgba(16,185,129,0.08); transform: scale(1.01); }
-      100%{ box-shadow: 0 0 0 rgba(16,185,129,0); transform: scale(1); }
-    }
-    .new-row{ animation: glowPop 800ms ease; }
+    @keyframes glowPop{ 0%{ box-shadow: 0 0 0 rgba(16,185,129,0); transform: scale(0.995); } 40%{ box-shadow: 0 6px 28px rgba(16,185,129,0.10); transform: scale(1.02); } 100%{ box-shadow: 0 0 0 rgba(16,185,129,0); transform: scale(1); } }
+    .new-row{ animation: glowPop 820ms ease; }
 
-    /* Placeholder style (framed empty) */
     .empty { color:var(--text-muted); font-weight:600; opacity:0.9 }
 
-    /* Responsive adjustments */
-    @media (max-width:720px){
-      .columns{grid-template-columns:64px 1fr 120px}
-      .row{grid-template-columns:64px 1fr 120px; font-size:14px}
-      .row .pos{font-size:16px}
-      .row .time{font-size:15px}
-      .rows-fixed, .rows-rotating { grid-auto-rows:48px }
-      .brand-left img{height:44px}
-    }
+    @media (max-width:720px){ .columns{grid-template-columns:64px 1fr 120px} .row{grid-template-columns:64px 1fr 120px; font-size:14px} .row .pos{font-size:16px} .row .time{font-size:15px} .rows-fixed, .rows-rotating { grid-auto-rows:48px } .brand-left img{height:44px} }
   </style>
 </head>
 <body>
@@ -175,7 +115,6 @@
 
       <div class="main-header">
         <div class="brand-left">
-          <!-- Place leaderboard/logo.png in the repo (leaderboard/logo.png) or change src to your hosted URL -->
           <img src="/leaderboard/logo.png" alt="SMP eSports logo" onerror="this.style.display='none'" />
           <div class="brand-title">
             <h1>🏎️ SMP eSports</h1>
@@ -201,12 +140,11 @@
   </div>
 
   <script>
-    // CSV-экспорт листа (gid=0)
     const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/1Q2DDOwHC-v1ewo1d70qjFdmsEXY-e7p0xJ1NyrJyFzw/export?format=csv&gid=0';
 
     const FIXED_SIZE = 5;
     const VISIBLE_ROTATING = 10;
-    const ROTATE_STEP = 10; // сдвиг на 10 строк
+    const ROTATE_STEP = 10; // page size
     const UPDATE_INTERVAL = 10000; // 10s
     const ROTATE_INTERVAL = 10000; // 10s
 
@@ -215,10 +153,13 @@
     const statusText = document.getElementById('statusText');
     const statusDot = document.getElementById('statusDot');
 
-    let allRows = []; // {position, name, timeRaw, timeMs}
-    let rotatePage = 0; // page index (each page shifts by ROTATE_STEP)
+    let allRows = [];
+    let rotatePage = 0;
 
-    // CSV парсер (поддержка кавычек)
+    // timers
+    let rotationTimer = null;
+    let updating = false;
+
     function splitCsvLine(line){
       const res=[]; let cur='', inQuotes=false;
       for(let i=0;i<line.length;i++){
@@ -235,11 +176,13 @@
       return res;
     }
     function parseCSV(text){
-      const lines=text.split(/\r?\n/).filter(Boolean);
+      const lines=text.split(/\r?\n/);
       if(lines.length===0) return [];
-      const headers = splitCsvLine(lines[0]).map(h=>h.trim().replace(/^"|"$/g,'').toLowerCase());
+      // keep empty lines because they may mean blank rows, filter later
+      const headers = splitCsvLine(lines[0]||'').map(h=>h.trim().replace(/^"|"$/g,'').toLowerCase());
       const rows=[];
       for(let i=1;i<lines.length;i++){
+        if(!lines[i]){ continue; }
         const cols=splitCsvLine(lines[i]);
         if(cols.length===0) continue;
         const obj={};
@@ -275,20 +218,17 @@
       return `${seconds}.${String(millis).padStart(3,'0')}`;
     }
 
-    function mapRow(r, idx){
+    function mapRow(r){
       const keys = Object.keys(r);
       let nameKey = keys.find(k => /name|fullname|фамилия|имя|фio|fio|фамилия имя/.test(k));
       let timeKey = keys.find(k => /time|lap|время|круг|best|besttime/.test(k));
       let posKey = keys.find(k => /pos|position|№|rank|место/.test(k));
-
       if(!nameKey){ nameKey = keys.find(k => /[а-яa-z]/i.test(r[k]) && !/\d/.test(r[k])); }
       if(!timeKey){ timeKey = keys.find(k => /\d+[:.,]\d+/.test(r[k]||'')); }
-
       const name = nameKey ? r[nameKey] : (r[keys[0]]||'—');
       const timeRaw = timeKey ? r[timeKey] : '';
       const pos = posKey ? (r[posKey]||'').replace(/[^\d]/g,'') : '';
       const timeMs = parseTimeToMs(timeRaw);
-
       return { pos: pos?Number(pos):null, name: name||'—', timeRaw: timeRaw||'', timeMs };
     }
 
@@ -299,7 +239,6 @@
         const text = await res.text();
         const parsed = parseCSV(text);
         const mapped = parsed.map(mapRow).filter(r => r.name && (r.timeRaw || r.timeMs!=null));
-
         const hasPos = mapped.some(r=>r.pos!==null && !isNaN(r.pos));
         if(hasPos){
           mapped.sort((a,b)=>{
@@ -318,129 +257,149 @@
         allRows = mapped.map((r,i)=>({ ...r, position: i+1 }));
         statusText.textContent = `Онлайн • ${allRows.length} записей • обновление каждые 10 с`;
         statusDot.style.background = 'var(--accent)';
+        return true;
       }catch(e){
         console.error(e);
         statusText.textContent = 'Ошибка загрузки данных';
         statusDot.style.background = '#ff5a5f';
         allRows = [];
+        return false;
       }
     }
 
-    // render helpers
-    function createRowElement(objOrNull){
-      const tr = document.createElement('div');
-      tr.className = 'row';
-      if(!objOrNull){
-        tr.innerHTML = `<div class="pos empty">—</div><div class="name empty">—</div><div class="time empty">—</div>`;
-      } else {
-        const classes = ['row'];
-        if(objOrNull.position === 1) classes.push('top-1');
-        if(objOrNull.position === 2) classes.push('top-2');
-        if(objOrNull.position === 3) classes.push('top-3');
-        tr.className = classes.join(' ');
-        const timeText = objOrNull.timeMs!=null ? formatMs(objOrNull.timeMs) : (objOrNull.timeRaw || '—');
-        tr.innerHTML = `<div class="pos">${objOrNull.position}</div><div class="name">${escapeHtml(objOrNull.name)}</div><div class="time">${escapeHtml(timeText)}</div>`;
-      }
-      return tr;
-    }
-    function createBlankSlot(){
+    // DOM element pools
+    const fixedEls = [];
+    const rotatingEls = [];
+
+    function createRowEl(){
       const el = document.createElement('div');
-      el.className = 'blank-slot';
+      el.className = 'row';
+      el.innerHTML = `<div class="pos">—</div><div class="name">—</div><div class="time">—</div>`;
       return el;
     }
+    function createBlankSlot(){ const el = document.createElement('div'); el.className = 'blank-slot'; return el; }
 
-    function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function ensurePool(){
+      // fixed
+      while(fixedEls.length < FIXED_SIZE){
+        const el = createRowEl();
+        fixedEls.push(el);
+        fixedEl.appendChild(el);
+      }
+      // rotating
+      while(rotatingEls.length < VISIBLE_ROTATING){
+        const el = createRowEl();
+        rotatingEls.push(el);
+        rotatingEl.appendChild(el);
+      }
+    }
 
-    // initial render: fixed top 5 + first rotating page
+    function updateRowElement(el, data){
+      if(!data){
+        // framed empty
+        el.className = 'row';
+        el.querySelector('.pos').textContent = '—';
+        el.querySelector('.name').textContent = '—';
+        el.querySelector('.time').textContent = '—';
+        return;
+      }
+      const classes = ['row'];
+      if(data.position === 1) classes.push('top-1');
+      if(data.position === 2) classes.push('top-2');
+      if(data.position === 3) classes.push('top-3');
+      el.className = classes.join(' ');
+      el.querySelector('.pos').textContent = data.position;
+      el.querySelector('.name').textContent = data.name;
+      el.querySelector('.time').textContent = data.timeMs!=null ? formatMs(data.timeMs) : (data.timeRaw || '—');
+    }
+
+    // initial creation
     function renderInitial(){
       fixedEl.innerHTML = '';
       rotatingEl.innerHTML = '';
+      fixedEls.length = 0;
+      rotatingEls.length = 0;
+      ensurePool();
 
-      if(allRows.length===0){
-        for(let i=0;i<FIXED_SIZE;i++) fixedEl.appendChild(createRowElement(null));
-        for(let i=0;i<VISIBLE_ROTATING;i++) rotatingEl.appendChild(createBlankSlot());
-        return;
-      }
-
+      // fill fixed
       const fixed = allRows.slice(0, FIXED_SIZE);
       for(let i=0;i<FIXED_SIZE;i++){
-        const r = fixed[i];
-        fixedEl.appendChild(createRowElement(r || null));
+        const r = fixed[i] || null;
+        updateRowElement(fixedEls[i], r);
       }
-
+      // fill rotating first page
       renderRotatingPage(0, true);
     }
 
     function renderRotatingPage(pageIndex, noAnim){
-      rotatingEl.classList.remove('fade-in','fade-out');
       const restAll = allRows.slice(FIXED_SIZE);
       const pages = Math.max(1, Math.ceil(restAll.length / ROTATE_STEP));
       const start = pageIndex * ROTATE_STEP;
       const slice = restAll.slice(start, start + VISIBLE_ROTATING);
-
-      // build rows (do NOT wrap-around). pad with blanks to VISIBLE_ROTATING
+      // pad
       const rows = slice.slice(0, VISIBLE_ROTATING);
       while(rows.length < VISIBLE_ROTATING) rows.push(null);
 
-      if(noAnim){
-        rotatingEl.innerHTML = '';
-        rows.forEach(r => rotatingEl.appendChild(r?createRowElement(r):createBlankSlot()));
-        return;
-      }
-
-      rotatingEl.classList.add('fade-out');
-      setTimeout(()=>{
-        rotatingEl.innerHTML = '';
-        rows.forEach(r => {
-          const el = r?createRowElement(r):createBlankSlot();
-          rotatingEl.appendChild(el);
-          if(r) {
-            // slight staggered highlight for newly shown rows
-            setTimeout(()=> el.classList.add('new-row'), 80);
-            setTimeout(()=> el.classList.remove('new-row'), 900);
-          }
-        });
-        rotatingEl.classList.remove('fade-out');
-        rotatingEl.classList.add('fade-in');
-        setTimeout(()=> rotatingEl.classList.remove('fade-in'), 820);
-      }, 380); // shorter delay for smoother feel
+      // update existing elements to avoid replacing DOM
+      rows.forEach((r, i)=>{
+        const el = rotatingEls[i];
+        // animate: fade-out then update then fade-in
+        if(noAnim){ updateRowElement(el, r); return; }
+        el.classList.add('fade-out');
+        setTimeout(()=>{
+          updateRowElement(el, r);
+          el.classList.remove('fade-out');
+          el.classList.add('fade-in');
+          if(r){ el.classList.add('new-row'); setTimeout(()=>el.classList.remove('new-row'), 900); }
+          setTimeout(()=>el.classList.remove('fade-in'), 820);
+        }, 360);
+      });
     }
 
-    // rotation step: advance pageIndex each tick
-    function startRotation(){
-      setInterval(()=>{
+    function startRotationLoop(){
+      if(rotationTimer) clearTimeout(rotationTimer);
+      rotationTimer = setTimeout(function tick(){
         const restAll = allRows.slice(FIXED_SIZE);
         const pages = Math.max(1, Math.ceil(restAll.length / ROTATE_STEP));
-        if(pages === 0) return;
-        rotatePage = (rotatePage + 1) % pages;
-        renderRotatingPage(rotatePage, false);
+        if(pages > 0){
+          rotatePage = (rotatePage + 1) % pages;
+          renderRotatingPage(rotatePage, false);
+        }
+        rotationTimer = setTimeout(tick, ROTATE_INTERVAL);
       }, ROTATE_INTERVAL);
     }
 
-    // periodic data refresh
+    async function refreshData(){
+      if(updating) return;
+      updating = true;
+      if(rotationTimer) { clearTimeout(rotationTimer); rotationTimer = null; }
+      const ok = await fetchAndPrepare();
+      // update fixed elements (in-place) to avoid layout shifts
+      ensurePool();
+      const fixed = allRows.slice(0, FIXED_SIZE);
+      for(let i=0;i<FIXED_SIZE;i++){
+        updateRowElement(fixedEls[i], fixed[i] || null);
+      }
+      // adjust page if out of range
+      const restAll = allRows.slice(FIXED_SIZE);
+      const pages = Math.max(1, Math.ceil(restAll.length / ROTATE_STEP));
+      rotatePage = rotatePage % pages;
+      renderRotatingPage(rotatePage, false);
+      // restart rotation a bit after update to give animation time
+      setTimeout(()=>{ startRotationLoop(); updating = false; }, 600);
+    }
+
+    // periodic updater
     function startUpdater(){
-      setInterval(async ()=>{
-        await fetchAndPrepare();
-        // re-render fixed top
-        fixedEl.innerHTML = '';
-        const fixed = allRows.slice(0, FIXED_SIZE);
-        for(let i=0;i<FIXED_SIZE;i++){
-          const r = fixed[i];
-          fixedEl.appendChild(createRowElement(r || null));
-        }
-        // clamp rotatePage
-        const restAll = allRows.slice(FIXED_SIZE);
-        const pages = Math.max(1, Math.ceil(restAll.length / ROTATE_STEP));
-        rotatePage = rotatePage % pages;
-        renderRotatingPage(rotatePage, false);
-      }, UPDATE_INTERVAL);
+      // initial periodic using setInterval but prevent overlap
+      setInterval(()=>{ refreshData(); }, UPDATE_INTERVAL);
     }
 
     (async function init(){
       await fetchAndPrepare();
-      rotatePage = 0;
+      ensurePool();
       renderInitial();
-      startRotation();
+      startRotationLoop();
       startUpdater();
     })();
 

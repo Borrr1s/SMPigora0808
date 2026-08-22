@@ -371,18 +371,62 @@
     const leaderboardBody = document.getElementById('leaderboardBody');
     const statusText = document.getElementById('statusText');
 
+    // Храним последнюю загруженную таблицу
+    let leaderboardData = [];
+
     // Функция приведения номера телефона к формату начиная с 8
     function normalizePhone(phone) {
       let trimmed = phone.trim();
-      // Если начинает с +7, меняем на 8
-      if (trimmed.startsWith('+7')) {
-        return '8' + trimmed.slice(2);
+      // Убираем все кроме цифр и +
+      //Сохраним знак + если есть
+      const hasPlus = trimmed.startsWith('+');
+      let digits = trimmed.replace(/[^\d]/g, '');
+      if (hasPlus && trimmed.startsWith('+7')) {
+        // +7 -> 8
+        digits = '8' + digits.slice(1);
+      } else if (digits.startsWith('7') && digits.length === 11) {
+        digits = '8' + digits.slice(1);
       }
-      // Если ввели 7 в начале (без плюс), меняем на 8
-      if (trimmed.startsWith('7') && trimmed.replace(/\D/g, '').length === 11) {
-        return '8' + trimmed.slice(1);
-      }
+      // если уже 11 цифр и начинается с 8 - оставим
+      if (digits.length === 11 && digits.startsWith('8')) return digits;
       return trimmed;
+    }
+
+    // Парсинг времени вида M:SS.mmm или SS.mmm в миллисекунды
+    function timeToMs(t) {
+      if (!t) return Infinity;
+      t = String(t).trim().replace(',', '.');
+      const parts = t.split(':');
+      let ms = 0;
+      if (parts.length === 2) {
+        const min = parseInt(parts[0], 10) || 0;
+        const rest = parseFloat(parts[1]) || 0;
+        ms = (min * 60 + rest) * 1000;
+      } else {
+        const val = parseFloat(parts[0]) || 0;
+        ms = val * 1000;
+      }
+      return Math.round(ms);
+    }
+
+    // Нормализация ФИО для сравнения (удаляем небуквы, пробелы, нижний регистр)
+    function normalizeName(name) {
+      return String(name || '').toLowerCase().replace(/[^а-яa-zё]/gi, '').trim();
+    }
+
+    // Больше мягкая проверка похожести по токенам (Фамилия/Имя)
+    function namesSimilar(a, b) {
+      if (!a || !b) return false;
+      const na = String(a).toLowerCase().replace(/[^\p{L}\s]/gu, '').trim();
+      const nb = String(b).toLowerCase().replace(/[^\p{L}\s]/gu, '').trim();
+      if (na === nb) return true;
+      const ta = na.split(/\s+/).filter(Boolean);
+      const tb = nb.split(/\s+/).filter(Boolean);
+      if (ta.length === 0 || tb.length === 0) return false;
+      const common = ta.filter(x => tb.includes(x)).length;
+      const ratio = common / Math.max(ta.length, tb.length);
+      // если совпало >= 0.6 токенов — считаем похожими
+      return ratio >= 0.6;
     }
 
     // Получение результатов
@@ -398,7 +442,12 @@
         const json = await response.json();
         
         if (json.data && json.data.length > 0) {
-          leaderboardBody.innerHTML = json.data.map(item => `
+          // Сохраняем данные локально (добавим индекс/pos если нет)
+          leaderboardData = json.data.map((item, i) => {
+            return Object.assign({}, item, { _index: i, pos: item.pos || (i+1) });
+          });
+
+          leaderboardBody.innerHTML = leaderboardData.map(item => `
             <tr>
               <td class="pos-col">${item.pos}</td>
               <td>${escapeHtml(item.name)}</td>
@@ -409,6 +458,7 @@
           `).join('');
         } else {
           leaderboardBody.innerHTML = `<tr><td colspan="5" class="empty-state">Записей пока нет</td></tr>`;
+          leaderboardData = [];
         }
         statusText.textContent = "Онлайн • Автообновление (10с)";
       } catch (err) {
@@ -422,14 +472,57 @@
       submitBtn.disabled = true;
       submitBtn.textContent = "Сохранение...";
 
+      const rawName = document.getElementById('name').value.trim();
       const rawPhone = document.getElementById('phone').value;
+      const rawLap = document.getElementById('lapTime').value.trim().replace(',', '.');
+      const rawComment = document.getElementById('comment').value.trim();
+
+      const normPhone = normalizePhone(rawPhone);
+      const newTimeMs = timeToMs(rawLap);
+
+      // Поиск похожих/совпадающих записей по имени (и/или телефону)
+      let found = null;
+      for (const item of leaderboardData) {
+        if (namesSimilar(item.name, rawName) || (item.phone && normalizePhone(item.phone) && normalizePhone(item.phone) === normPhone)) {
+          found = item;
+          break;
+        }
+      }
+
+      if (found) {
+        const existingTimeMs = timeToMs(found.lapTime);
+        const msgLines = [
+          `Найдена похожая запись: ${found.name}`,
+          `Текущее время: ${found.lapTime}`,
+          `Новое время: ${rawLap}`,
+          ``,
+          `Заменить найденную запись новой?`
+        ];
+        const confirmReplace = confirm(msgLines.join('\n'));
+        if (!confirmReplace) {
+          // Пользователь отказался заменять — прерываем, чтобы не создавать дубль
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Отправить результат";
+          return;
+        }
+        // Пользователь подтвердил замену — добавляем метку replace
+      }
 
       const payload = {
-        name: document.getElementById('name').value.trim(),
-        phone: normalizePhone(rawPhone),
-        lapTime: document.getElementById('lapTime').value.trim().replace(',', '.'),
-        comment: document.getElementById('comment').value.trim()
+        name: rawName,
+        phone: normPhone,
+        lapTime: rawLap,
+        comment: rawComment
       };
+
+      if (found) {
+        payload.replace = true;
+        payload.replaceName = found.name;
+        payload.replacePhone = found.phone || '';
+        // Если есть индекс/pos — добавим для надёжности
+        if (typeof found.pos !== 'undefined') payload.replacePos = found.pos;
+        if (typeof found._index !== 'undefined') payload.replaceIndex = found._index;
+      }
 
       try {
         await fetch(SCRIPT_URL, {
